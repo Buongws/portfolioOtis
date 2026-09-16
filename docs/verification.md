@@ -50,5 +50,5 @@ Lighthouse is a one-off measurement tool, not an application dependency. Scores 
 - The site adapts layout in normal document flow rather than using Figma's absolute page coordinates. This prevents overlapping text at intermediate widths.
 - Desktop has accessible gallery arrows and career tabs so every item can be inspected before animations are implemented. No autoplay, scroll animation, or full-screen transition has been added.
 - CV, Behance, and LinkedIn destinations were not present in Figma and have not been supplied. Their buttons remain disabled, with explicit accessible labels, until `profileLinks` is populated.
-- No real CV was generated, no case studies were invented, and nothing was deployed. Set `NEXT_PUBLIC_SITE_URL` to the final domain before deployment.
+- No real CV was generated, no case studies were invented, and nothing was deployed.
 - The layout is tested in Chromium; Safari and Firefox have not been separately tested.

@@ -8,11 +8,8 @@ const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
 });
 
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL?.trim() || "http://localhost:3001";
-
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
+  metadataBase: new URL("https://otis-portfolio-roan.vercel.app"),
   title: {
     default: "Dong Van Cuong | UI/UX & Product Designer",
     template: "%s | Dong Van Cuong",

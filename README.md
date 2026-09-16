@@ -117,7 +117,7 @@ Cac node la cac trang thai/component cua cung mot portfolio, khong phai 10 trang
 
 Trong `src/data/portfolio.ts`, dat link that cho `profileLinks.cv`, `profileLinks.behance`, `profileLinks.linkedin`. Hien tai cac nut nay disabled vi Figma khong cung cap URL; email va dien thoai da hoat dong. Dat CV tai `public/cv.pdf` va gan `cv: "/cv.pdf"` khi co file that. Khong tu tao CV hay gan profile cua nguoi khac.
 
-Truoc khi deploy, dat `NEXT_PUBLIC_SITE_URL` bang domain that. Anh va text da luu trong repo, khong phu thuoc URL Figma tam thoi. Khong co backend, analytics, form gui thu hay deployment duoc tao.
+Anh va text da luu trong repo, khong phu thuoc URL Figma tam thoi. Khong co backend, analytics, form gui thu hay deployment duoc tao.
 
 ## Chat luong code
 
