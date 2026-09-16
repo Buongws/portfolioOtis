@@ -8,10 +8,11 @@ const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
 });
 
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL?.trim() || "http://localhost:3001";
+
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3001",
-  ),
+  metadataBase: new URL(siteUrl),
   title: {
     default: "Dong Van Cuong | UI/UX & Product Designer",
     template: "%s | Dong Van Cuong",
