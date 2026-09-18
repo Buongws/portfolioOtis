@@ -2,142 +2,151 @@
 
 import Image from "next/image";
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type PointerEvent } from "react";
 import { useProject } from "@/context/project-context";
 import { projects } from "@/data/portfolio";
 import { RevealHeading } from "@/components/motion/reveal-heading";
 
 export function ProjectGallery() {
   const { activeIndex, selectProject } = useProject();
-  const scrollContent = useRef<HTMLDivElement>(null);
   const viewport = useRef<HTMLDivElement>(null);
   const track = useRef<HTMLDivElement>(null);
-  const scrollToProject = useRef<(index: number) => boolean>(() => false);
+  const initialIndex = useRef(activeIndex);
+  const drag = useRef<{ x: number; left: number } | null>(null);
+  const pendingLeft = useRef<number | null>(null);
+  const requestUpdate = useRef<() => void>(() => {});
+  const centerNearest = useRef<() => void>(() => {});
 
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
-    let disposed = false;
-    let cleanup: (() => void) | undefined;
-
-    void Promise.all([import("gsap"), import("gsap/ScrollTrigger")]).then(
-      ([gsapModule, scrollTriggerModule]) => {
-        if (disposed) return;
-
-        const gsap = gsapModule.gsap;
-        const { ScrollTrigger } = scrollTriggerModule;
-        gsap.registerPlugin(ScrollTrigger);
-
-        const media = gsap.matchMedia();
-        media.add("(min-width: 768px)", () => {
-          const content = scrollContent.current;
-          const rail = track.current;
-          const galleryViewport = viewport.current;
-          if (!content || !rail || !galleryViewport) return;
-
-          let displayedIndex = -1;
-          const selectDisplayedProject = (index: number) => {
-            if (index === displayedIndex) return;
-            displayedIndex = index;
-            selectProject(index);
-          };
-          const updateActiveProject = (progress: number) =>
-            selectDisplayedProject(
-              Math.min(
-                projects.length - 1,
-                Math.round(progress * (projects.length - 1)),
-              ),
-            );
-          const getTravelDistance = () =>
-            Math.max(0, rail.scrollWidth - window.innerWidth);
-          const revealGallery = () => {
-            content.classList.add("project-gallery-ready");
-            gsap.set(content, { autoAlpha: 1 });
-            gsap.fromTo(
-              galleryViewport,
-              { autoAlpha: 0, y: 64 },
-              {
-                autoAlpha: 1,
-                duration: 1.1,
-                ease: "power3.out",
-                overwrite: "auto",
-                y: 0,
-              },
-            );
-          };
-          const concealGallery = () => {
-            gsap.killTweensOf(galleryViewport);
-            content.classList.remove("project-gallery-ready");
-            gsap.set(galleryViewport, {
-              clearProps: "transform,opacity,visibility",
-            });
-          };
-
-          galleryViewport.classList.add("project-scroll-ready");
-          const tween = gsap.to(rail, {
-            x: () => -getTravelDistance(),
-            ease: "none",
-            scrollTrigger: {
-              trigger: content,
-              start: "top top",
-              end: () => `+=${getTravelDistance()}`,
-              pin: true,
-              pinType: "fixed",
-              pinReparent: true,
-              scrub: 0.65,
-              anticipatePin: 1,
-              invalidateOnRefresh: true,
-              onEnter: revealGallery,
-              onEnterBack: revealGallery,
-              onLeaveBack: concealGallery,
-              onRefresh: (trigger) => updateActiveProject(trigger.progress),
-              onUpdate: (trigger) => updateActiveProject(trigger.progress),
-            },
-          });
-
-          scrollToProject.current = (index) => {
-            const scrollTrigger = tween.scrollTrigger;
-            if (!scrollTrigger) return false;
-
-            window.scrollTo({
-              top:
-                scrollTrigger.start +
-                ((scrollTrigger.end - scrollTrigger.start) * index) /
-                  (projects.length - 1),
-              behavior: "smooth",
-            });
-            return true;
-          };
-
-          requestAnimationFrame(() => {
-            ScrollTrigger.refresh();
-          });
-
-          return () => {
-            galleryViewport.classList.remove("project-scroll-ready");
-            concealGallery();
-            scrollToProject.current = () => false;
-          };
-        });
-
-        cleanup = () => media.revert();
-      },
-    );
-
+    const gallery = viewport.current!;
+    const rail = track.current!;
+    const cards = Array.from(rail.children) as HTMLElement[];
+    const first = cards[0];
+    if (!first) return;
+    let frame = 0;
+    let offsets: number[] = [];
+    let horizontal = false;
+    let step = 1;
+    let displayedIndex = initialIndex.current;
+    const measure = () => {
+      offsets = cards.map(
+        (card) =>
+          card.offsetLeft + card.offsetWidth / 2 - gallery.clientWidth / 2,
+      );
+      horizontal = gallery.scrollWidth > gallery.clientWidth;
+      step = cards[1] ? cards[1].offsetLeft - first.offsetLeft : 1;
+    };
+    const update = () => {
+      frame = 0;
+      if (pendingLeft.current !== null) {
+        gallery.scrollLeft = pendingLeft.current;
+        pendingLeft.current = null;
+      }
+      // Read once before writing styles; geometry is cached until resize.
+      const left = gallery.scrollLeft;
+      let nearest = 0;
+      let distance = Infinity;
+      cards.forEach((card, index) => {
+        const delta = Math.abs(offsets[index]! - left);
+        const proximity = horizontal ? Math.max(0, 1 - delta / step) : 1;
+        const eased = proximity * proximity * (3 - 2 * proximity);
+        card.style.setProperty("--project-scale", String(0.84 + eased * 0.24));
+        card.style.setProperty(
+          "--project-opacity",
+          String(0.62 + eased * 0.38),
+        );
+        if (delta < distance) {
+          distance = delta;
+          nearest = index;
+        }
+      });
+      if (horizontal && nearest !== displayedIndex) {
+        displayedIndex = nearest;
+        selectProject(nearest);
+      }
+    };
+    const schedule = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+    const settle = () => {
+      if (drag.current || !horizontal) return;
+      if (pendingLeft.current !== null) {
+        gallery.scrollLeft = pendingLeft.current;
+        pendingLeft.current = null;
+      }
+      const left = gallery.scrollLeft;
+      const target = offsets.reduce((nearest, offset) =>
+        Math.abs(offset - left) < Math.abs(nearest - left) ? offset : nearest,
+      );
+      if (Math.abs(target - left) < 1) return;
+      gallery.scrollTo({
+        left: target,
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+          ? "instant"
+          : "smooth",
+      });
+    };
+    requestUpdate.current = schedule;
+    centerNearest.current = settle;
+    measure();
+    gallery.scrollLeft = offsets[initialIndex.current]!;
+    update();
+    gallery.addEventListener("scroll", schedule, { passive: true });
+    gallery.addEventListener("scrollend", settle);
+    const observer = new ResizeObserver(() => {
+      measure();
+      schedule();
+    });
+    observer.observe(gallery);
+    observer.observe(rail);
     return () => {
-      disposed = true;
-      cleanup?.();
+      cancelAnimationFrame(frame);
+      requestUpdate.current = () => {};
+      centerNearest.current = () => {};
+      gallery.removeEventListener("scrollend", settle);
+      gallery.removeEventListener("scroll", schedule);
+      observer.disconnect();
     };
   }, [selectProject]);
 
-  function showProject(index: number) {
-    selectProject(index);
-    if (scrollToProject.current(index)) return;
+  function startDrag(event: PointerEvent<HTMLDivElement>) {
+    if (event.pointerType !== "mouse" || event.button !== 0) return;
+    const gallery = event.currentTarget;
+    if (gallery.scrollWidth <= gallery.clientWidth) return;
+    // Stop any arrow-button scroll before handing control to the pointer.
+    gallery.scrollTo({ left: gallery.scrollLeft, behavior: "instant" });
+    drag.current = { x: event.clientX, left: gallery.scrollLeft };
+    gallery.classList.add("is-dragging");
+    gallery.setPointerCapture(event.pointerId);
+    event.preventDefault();
+  }
 
+  function moveDrag(event: PointerEvent<HTMLDivElement>) {
+    if (!drag.current) return;
+    pendingLeft.current = drag.current.left + drag.current.x - event.clientX;
+    requestUpdate.current();
+  }
+
+  function endDrag(event: PointerEvent<HTMLDivElement>) {
+    if (!drag.current) return;
+    drag.current = null;
+    event.currentTarget.classList.remove("is-dragging");
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    centerNearest.current();
+  }
+
+  function showProject(index: number) {
     const item = track.current?.children[index] as HTMLElement | undefined;
+    const gallery = viewport.current;
+    if (!item || !gallery) return;
+    pendingLeft.current = null;
     viewport.current?.scrollTo({
-      left: item?.offsetLeft ?? 0,
-      behavior: "smooth",
+      left: item.offsetLeft + item.offsetWidth / 2 - gallery.clientWidth / 2,
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "instant"
+        : "smooth",
     });
   }
 
@@ -150,7 +159,7 @@ export function ProjectGallery() {
       data-aos-easing="linear"
       data-aos-duration="1500"
     >
-      <div className="project-scroll-content" ref={scrollContent}>
+      <div className="project-scroll-content">
         <div className="page-container flex items-end justify-between gap-4">
           <RevealHeading id="projects-heading" className="section-title">
             Product
@@ -181,6 +190,11 @@ export function ProjectGallery() {
         <div
           className="project-viewport"
           ref={viewport}
+          onPointerDown={startDrag}
+          onPointerMove={moveDrag}
+          onPointerUp={endDrag}
+          onPointerCancel={endDrag}
+          onLostPointerCapture={endDrag}
           tabIndex={0}
           role="region"
           aria-label="Project gallery"
@@ -194,8 +208,9 @@ export function ProjectGallery() {
                 <Image
                   src={project.image}
                   alt={project.alt}
+                  draggable={false}
                   fill
-                  sizes="(max-width: 767px) 92vw, 63vw"
+                  sizes="(max-width: 767px) 92vw, (min-width: 1920px) 758px, 39.48vw"
                   className="object-cover object-top"
                 />
               </figure>

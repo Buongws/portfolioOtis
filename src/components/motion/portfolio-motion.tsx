@@ -18,6 +18,19 @@ export function PortfolioMotion() {
         gsap.registerPlugin(ScrollTrigger);
 
         const context = gsap.context(() => {
+          // Animate the contents, leaving the centered pin's geometry unchanged.
+          gsap.to(".about-reveal", {
+            autoAlpha: 1,
+            y: 0,
+            duration: 1.1,
+            ease: "power2.out",
+            scrollTrigger: {
+              trigger: "#about",
+              start: "top 90%",
+              toggleActions: "play none none reverse",
+            },
+          });
+
           gsap.utils.toArray<HTMLElement>("[data-aos]").forEach((section) => {
             if (section.getBoundingClientRect().top < window.innerHeight) {
               gsap.set(section, { autoAlpha: 1, y: 0 });
@@ -109,13 +122,15 @@ export function PortfolioMotion() {
             const pin = Boolean(conditions?.desktop);
             gsap.to(words, {
               color: "#020617",
-              fontWeight: 700,
               duration: 0.01,
               ease: "none",
               stagger: { each: 0.005 },
               scrollTrigger: {
                 trigger: pin ? section : copy,
-                start: pin ? "top top" : "top 82%",
+                start: pin
+                  ? () =>
+                      `top ${Math.max(0, (window.innerHeight - section.offsetHeight) / 2)}px`
+                  : "top 82%",
                 end: pin
                   ? () =>
                       `+=${Math.max(window.innerHeight * 1.5, words.length * 9)}`

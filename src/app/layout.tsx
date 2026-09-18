@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Space_Grotesk } from "next/font/google";
 import "./globals.css";
+import { Preloader } from "@/components/motion/preloader";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -39,10 +40,16 @@ export default function RootLayout({
   return (
     <html lang="en" className={spaceGrotesk.variable}>
       <body>
-        <a className="skip-link" href="#main-content">
-          Skip to content
-        </a>
-        {children}
+        <Preloader />
+        <noscript>
+          <style>{`.preloader { display: none !important; }`}</style>
+        </noscript>
+        <div id="site-content">
+          <a className="skip-link" href="#main-content">
+            Skip to content
+          </a>
+          {children}
+        </div>
       </body>
     </html>
   );
