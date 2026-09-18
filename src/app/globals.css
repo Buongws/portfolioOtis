@@ -703,15 +703,8 @@ a {
     );
   }
   .career-scroll-content > h2 {
-    position: sticky;
-    top: 0;
-    z-index: 5;
     margin: 0;
     padding-bottom: 24px;
-    background: var(--color-night);
-  }
-  .career-scroll-content.career-heading-released > h2 {
-    position: relative;
   }
   .career-desktop {
     margin-top: 24px;
@@ -1539,4 +1532,15 @@ a {
     transform: none;
     opacity: 1;
   }
+}
+
+/* Keep the career title on one line within its container at every breakpoint. */
+.career-scroll-content {
+  container-type: inline-size;
+}
+.career-section h2 {
+  max-width: none;
+  white-space: nowrap;
+  font-size: clamp(24px, 12.5cqw, 210px);
+  line-height: 1.27;
 }

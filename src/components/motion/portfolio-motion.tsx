@@ -219,10 +219,6 @@ export function PortfolioMotion() {
             const cards = gsap.utils.toArray<HTMLElement>(selector);
             if (!cards.length) return;
 
-            const content = document.querySelector<HTMLElement>(
-              ".career-scroll-content",
-            );
-
             cards.forEach((card) => {
               const revealCard = () => {
                 card.setAttribute("data-career-visible", "");
@@ -264,18 +260,6 @@ export function PortfolioMotion() {
                 },
               );
             });
-
-            if (conditions?.desktop && content && cards[2]) {
-              ScrollTrigger.create({
-                trigger: cards[2],
-                start: "top 86%",
-                onEnter: () => content.classList.add("career-heading-released"),
-                onLeaveBack: () =>
-                  content.classList.remove("career-heading-released"),
-              });
-            }
-
-            return () => content?.classList.remove("career-heading-released");
           },
         );
 
