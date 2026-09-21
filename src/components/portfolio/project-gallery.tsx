@@ -50,11 +50,7 @@ export function ProjectGallery() {
         const delta = Math.abs(offsets[index]! - left);
         const proximity = horizontal ? Math.max(0, 1 - delta / step) : 1;
         const eased = proximity * proximity * (3 - 2 * proximity);
-        card.style.setProperty("--project-scale", String(0.84 + eased * 0.24));
-        card.style.setProperty(
-          "--project-opacity",
-          String(0.62 + eased * 0.38),
-        );
+        card.style.setProperty("--project-emphasis", String(eased));
         if (delta < distance) {
           distance = delta;
           nearest = index;
@@ -210,7 +206,7 @@ export function ProjectGallery() {
                   alt={project.alt}
                   draggable={false}
                   fill
-                  sizes="(max-width: 767px) 92vw, (min-width: 1920px) 758px, 39.48vw"
+                  sizes="(max-width: 767px) 92vw, (min-width: 1920px) 1200px, 62.5vw"
                   className="object-cover object-top"
                 />
               </figure>

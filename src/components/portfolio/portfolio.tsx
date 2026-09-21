@@ -21,7 +21,9 @@ export function Portfolio({
       <Hero variant={variant} />
       <About />
       <CoreSkills />
-      <ProjectProvider initialIndex={variant === "people" ? 0 : 1}>
+      <ProjectProvider
+        initialIndex={variant === "people" ? 0 : variant === "products" ? 1 : 2}
+      >
         <ProjectGallery />
       </ProjectProvider>
       <CareerJourney />
