@@ -7,6 +7,16 @@ import { useProject } from "@/context/project-context";
 import { projects } from "@/data/portfolio";
 import { RevealHeading } from "@/components/motion/reveal-heading";
 
+const PROJECT_INITIAL_SHIFT_MAX = 120;
+const PROJECT_INITIAL_SHIFT_RATIO = 0.1;
+
+function getProjectInitialShift(viewportWidth: number) {
+  return Math.min(
+    PROJECT_INITIAL_SHIFT_MAX,
+    viewportWidth * PROJECT_INITIAL_SHIFT_RATIO,
+  );
+}
+
 export function ProjectGallery() {
   const { activeIndex, selectProject } = useProject();
   const viewport = useRef<HTMLDivElement>(null);
@@ -29,9 +39,13 @@ export function ProjectGallery() {
     let step = 1;
     let displayedIndex = initialIndex.current;
     const measure = () => {
+      const initialLeftBias = getProjectInitialShift(gallery.clientWidth);
       offsets = cards.map(
         (card) =>
-          card.offsetLeft + card.offsetWidth / 2 - gallery.clientWidth / 2,
+          card.offsetLeft +
+          card.offsetWidth / 2 -
+          gallery.clientWidth / 2 +
+          initialLeftBias,
       );
       horizontal = gallery.scrollWidth > gallery.clientWidth;
       step = cards[1] ? cards[1].offsetLeft - first.offsetLeft : 1;
@@ -85,7 +99,7 @@ export function ProjectGallery() {
     requestUpdate.current = schedule;
     centerNearest.current = settle;
     measure();
-    gallery.scrollLeft = offsets[initialIndex.current]!;
+    gallery.scrollLeft = Math.max(0, offsets[initialIndex.current]!);
     update();
     gallery.addEventListener("scroll", schedule, { passive: true });
     gallery.addEventListener("scrollend", settle);
@@ -139,7 +153,11 @@ export function ProjectGallery() {
     if (!item || !gallery) return;
     pendingLeft.current = null;
     viewport.current?.scrollTo({
-      left: item.offsetLeft + item.offsetWidth / 2 - gallery.clientWidth / 2,
+      left:
+        item.offsetLeft +
+        item.offsetWidth / 2 -
+        gallery.clientWidth / 2 +
+        getProjectInitialShift(gallery.clientWidth),
       behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
         ? "instant"
         : "smooth",

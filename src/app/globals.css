@@ -628,7 +628,11 @@ a {
   gap: min(12.5520833vw, 241px);
   width: max-content;
   min-width: 100%;
-  padding: 0 calc((100cqw - min(39.4791667vw, 758px)) / 2);
+  --project-initial-shift: min(120px, 10cqw);
+  padding: 0
+    calc((100cqw - min(39.4791667vw, 758px)) / 2 + var(--project-initial-shift))
+    0
+    calc((100cqw - min(39.4791667vw, 758px)) / 2 - var(--project-initial-shift));
 }
 .project-card {
   position: relative;
