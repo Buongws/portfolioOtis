@@ -29,16 +29,30 @@ export function About() {
           <i />
         </div>
         <div className="about-surface">
-          <div className="about-masthead">
-            <span>{profile.name}</span>
-            <AssetIcon src="/icons/spark.svg" size={42} />
-            <span className="masthead-extra">Portfolio</span>
-            <AssetIcon
-              src="/icons/spark.svg"
-              size={42}
-              className="masthead-extra"
-            />
-            <span className="masthead-extra">UI UX Design</span>
+          <div className="about-masthead-viewport">
+            <div className="about-masthead">
+              <div className="about-masthead-group">
+                <span>{profile.name}</span>
+                <AssetIcon src="/icons/spark.svg" size={42} />
+                <span className="masthead-extra">Portfolio</span>
+                <AssetIcon
+                  src="/icons/spark.svg"
+                  size={42}
+                  className="masthead-extra"
+                />
+                <span className="masthead-extra">UI UX Design</span>
+              </div>
+              <div
+                className="about-masthead-group about-masthead-group-clone"
+                aria-hidden="true"
+              >
+                <span>{profile.name}</span>
+                <AssetIcon src="/icons/spark.svg" size={42} />
+                <span>Portfolio</span>
+                <AssetIcon src="/icons/spark.svg" size={42} />
+                <span>UI UX Design</span>
+              </div>
+            </div>
           </div>
           <div className="about-grid">
             <div className="portrait">

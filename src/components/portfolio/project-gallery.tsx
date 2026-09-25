@@ -7,13 +7,18 @@ import { useProject } from "@/context/project-context";
 import { projects } from "@/data/portfolio";
 import { RevealHeading } from "@/components/motion/reveal-heading";
 
-const PROJECT_INITIAL_SHIFT_MAX = 120;
-const PROJECT_INITIAL_SHIFT_RATIO = 0.1;
+const PROJECT_INITIAL_SHIFT_MAX = 200;
+const PROJECT_INITIAL_SHIFT_RATIO = 0.2;
+const PROJECT_TABLET_MAX_WIDTH = 1199;
+const PROJECT_TABLET_SHIFT_MAX = 120;
+const PROJECT_TABLET_SHIFT_RATIO = 0.1;
 
 function getProjectInitialShift(viewportWidth: number) {
+  const isTablet = viewportWidth <= PROJECT_TABLET_MAX_WIDTH;
   return Math.min(
-    PROJECT_INITIAL_SHIFT_MAX,
-    viewportWidth * PROJECT_INITIAL_SHIFT_RATIO,
+    isTablet ? PROJECT_TABLET_SHIFT_MAX : PROJECT_INITIAL_SHIFT_MAX,
+    viewportWidth *
+      (isTablet ? PROJECT_TABLET_SHIFT_RATIO : PROJECT_INITIAL_SHIFT_RATIO),
   );
 }
 

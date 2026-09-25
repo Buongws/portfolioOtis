@@ -65,6 +65,7 @@ export function PortfolioMotion() {
                 ...words.slice(0, initialIndex + 1),
               ];
               const state = { value: initialWord.length };
+              element.textContent = initialWord;
 
               const timeline = gsap.timeline({ repeat: -1 });
               timeline.to(state, {
@@ -78,29 +79,31 @@ export function PortfolioMotion() {
                 },
               });
 
-              nextWords.forEach((word) => {
-                const typed = { value: 0 };
-                timeline
-                  .to({}, { duration: 0.2 })
-                  .to(typed, {
-                    value: word.length,
-                    duration: word.length * 0.11,
-                    ease: "none",
-                    roundProps: "value",
-                    onUpdate: () => {
-                      element.textContent = word.slice(0, typed.value);
-                    },
-                  })
-                  .to({}, { duration: 1.1 })
-                  .to(typed, {
+              nextWords.forEach((word, index) => {
+                timeline.to({}, { duration: 0.2 }).to(state, {
+                  value: word.length,
+                  duration: word.length * 0.11,
+                  ease: "none",
+                  roundProps: "value",
+                  onUpdate: () => {
+                    element.textContent = word.slice(0, state.value);
+                  },
+                });
+
+                timeline.to({}, { duration: 1.1 });
+
+                // Keep the last word visible so the next repeat can delete it smoothly.
+                if (index < nextWords.length - 1) {
+                  timeline.to(state, {
                     value: 0,
                     duration: word.length * 0.06,
                     ease: "none",
                     roundProps: "value",
                     onUpdate: () => {
-                      element.textContent = word.slice(0, typed.value);
+                      element.textContent = word.slice(0, state.value);
                     },
                   });
+                }
               });
             });
         });
