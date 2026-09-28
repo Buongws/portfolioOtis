@@ -110,6 +110,12 @@ export function ProjectGallery() {
     gallery.addEventListener("scrollend", settle);
     const observer = new ResizeObserver(() => {
       measure();
+      // Keep the selected card anchored when viewport geometry changes.
+      pendingLeft.current = null;
+      gallery.scrollTo({
+        left: Math.max(0, offsets[displayedIndex]!),
+        behavior: "instant",
+      });
       schedule();
     });
     observer.observe(gallery);
