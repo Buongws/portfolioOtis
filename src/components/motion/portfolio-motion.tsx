@@ -145,66 +145,109 @@ export function PortfolioMotion() {
         );
 
         const skillsMedia = gsap.matchMedia();
-        skillsMedia.add("(min-width: 768px)", () => {
-          const skillsContent = document.querySelector<HTMLElement>(
-            ".skills-scroll-content",
-          );
-          const cards = gsap.utils.toArray<HTMLElement>(".skills-list .skill");
-          if (!skillsContent || !cards.length) return;
-
-          let activeIndex = -1;
-          let skillSequenceReady = false;
-          const setActiveSkill = (index: number) => {
-            if (index === activeIndex) return;
-            activeIndex = index;
-            cards.forEach((card, cardIndex) => {
-              card.classList.toggle("skill-scroll-active", cardIndex === index);
-            });
-          };
-          const updateActiveSkill = (progress: number) => {
-            setActiveSkill(
-              Math.min(cards.length - 1, Math.floor(progress * cards.length)),
+        skillsMedia.add(
+          {
+            desktop: "(min-width: 768px)",
+            mobile: "(max-width: 767px)",
+          },
+          ({ conditions }) => {
+            const skillsContent = document.querySelector<HTMLElement>(
+              ".skills-scroll-content",
             );
-          };
+            const cards = gsap.utils.toArray<HTMLElement>(
+              ".skills-list .skill",
+            );
+            if (!skillsContent || !cards.length) return;
 
-          ScrollTrigger.create({
-            trigger: skillsContent,
-            start: "top top",
-            end: () => `+=${Math.round(window.innerHeight * 1.55)}`,
-            pin: true,
-            pinType: "fixed",
-            pinReparent: true,
-            scrub: 0.35,
-            anticipatePin: 1,
-            invalidateOnRefresh: true,
-            onEnter: (trigger) => {
-              gsap.set(skillsContent, { autoAlpha: 1 });
-              requestAnimationFrame(() => {
-                void cards[0]?.offsetWidth;
-                requestAnimationFrame(() => {
-                  skillSequenceReady = true;
-                  updateActiveSkill(trigger.progress);
-                });
+            if (!conditions?.desktop) {
+              cards.forEach((card) => {
+                gsap.fromTo(
+                  card,
+                  { autoAlpha: 0, y: 56 },
+                  {
+                    autoAlpha: 1,
+                    y: 0,
+                    duration: 0.9,
+                    ease: "power3.out",
+                    scrollTrigger: {
+                      trigger: card,
+                      start: "top 90%",
+                      once: true,
+                    },
+                  },
+                );
               });
-            },
-            onEnterBack: (trigger) => {
-              skillSequenceReady = true;
-              updateActiveSkill(trigger.progress);
-            },
-            onLeaveBack: () => {
-              skillSequenceReady = false;
-              setActiveSkill(-1);
-            },
-            onUpdate: (trigger) => {
-              if (skillSequenceReady) updateActiveSkill(trigger.progress);
-            },
-          });
+              return;
+            }
 
-          return () =>
-            cards.forEach((card) =>
-              card.classList.remove("skill-scroll-active"),
+            gsap.fromTo(
+              cards,
+              { autoAlpha: 0, y: 56 },
+              {
+                autoAlpha: 1,
+                y: 0,
+                duration: 0.9,
+                stagger: 0.12,
+                ease: "power3.out",
+                scrollTrigger: {
+                  trigger: ".skills-list",
+                  start: "top 90%",
+                  once: true,
+                },
+              },
             );
-        });
+
+            let activeIndex = -1;
+            let skillSequenceReady = false;
+            const setActiveSkill = (index: number) => {
+              if (index === activeIndex) return;
+              activeIndex = index;
+              cards.forEach((card, cardIndex) => {
+                card.classList.toggle(
+                  "skill-scroll-active",
+                  cardIndex === index,
+                );
+              });
+            };
+            const updateActiveSkill = (progress: number) => {
+              setActiveSkill(
+                Math.min(cards.length - 1, Math.floor(progress * cards.length)),
+              );
+            };
+
+            ScrollTrigger.create({
+              trigger: skillsContent,
+              start: "top top",
+              end: () => `+=${Math.round(window.innerHeight * 1.55)}`,
+              pin: true,
+              pinType: "fixed",
+              pinReparent: true,
+              scrub: 0.35,
+              anticipatePin: 1,
+              invalidateOnRefresh: true,
+              onEnter: (trigger) => {
+                skillSequenceReady = true;
+                updateActiveSkill(trigger.progress);
+              },
+              onEnterBack: (trigger) => {
+                skillSequenceReady = true;
+                updateActiveSkill(trigger.progress);
+              },
+              onLeaveBack: () => {
+                skillSequenceReady = false;
+                setActiveSkill(-1);
+              },
+              onUpdate: (trigger) => {
+                if (skillSequenceReady) updateActiveSkill(trigger.progress);
+              },
+            });
+
+            return () =>
+              cards.forEach((card) =>
+                card.classList.remove("skill-scroll-active"),
+              );
+          },
+        );
 
         const careerMedia = gsap.matchMedia();
         careerMedia.add(

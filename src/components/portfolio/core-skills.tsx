@@ -8,9 +8,6 @@ export function CoreSkills() {
       id="skills"
       className="page-container skills-section"
       aria-labelledby="skills-heading"
-      data-aos="fade-up"
-      data-aos-easing="linear"
-      data-aos-duration="1500"
     >
       <div className="skills-scroll-content">
         <RevealHeading

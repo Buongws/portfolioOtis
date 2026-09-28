@@ -9,6 +9,8 @@
 }
 
 :root {
+  --page-content-ratio: 0.8375;
+  --page-content-max-width: 1608px;
   scroll-behavior: smooth;
   color-scheme: light;
 }
@@ -62,8 +64,8 @@ a {
   transform: none;
 }
 .page-container {
-  width: 83.75%;
-  max-width: 1608px;
+  width: calc(100% * var(--page-content-ratio));
+  max-width: var(--page-content-max-width);
   margin-inline: auto;
 }
 .hero {
@@ -593,6 +595,18 @@ a {
 }
 .project-scroll-content {
   width: 100%;
+  --project-gutter: calc(
+    (
+        100cqw -
+          min(100cqw * var(--page-content-ratio), var(--page-content-max-width))
+      ) /
+      2
+  );
+  --project-card-width: min(39.4791667vw, 758px);
+  --project-active-width: min(62.5vw, 1200px);
+  --project-card-expansion: calc(
+    (var(--project-active-width) - var(--project-card-width)) / 2
+  );
 }
 @media (min-width: 768px) {
   .project-scroll-content {
@@ -646,11 +660,13 @@ a {
   gap: min(12.5520833vw, 241px);
   width: max-content;
   min-width: 100%;
-  --project-initial-shift: min(200px, 20cqw);
+  /* Include the scale expansion so the visible edge uses the page gutter. */
   padding: 0
-    calc((100cqw - min(39.4791667vw, 758px)) / 2 + var(--project-initial-shift))
-    0
-    calc((100cqw - min(39.4791667vw, 758px)) / 2 - var(--project-initial-shift));
+    calc(
+      100cqw - var(--project-gutter) - var(--project-card-width) -
+        var(--project-card-expansion)
+    )
+    0 calc(var(--project-gutter) + var(--project-card-expansion));
 }
 .project-card {
   position: relative;
@@ -1093,9 +1109,6 @@ a {
   .skills-section,
   .projects-section {
     padding-top: 160px;
-  }
-  .project-track {
-    --project-initial-shift: min(120px, 10cqw);
   }
   .section-title {
     font-size: 56px;
@@ -1554,6 +1567,9 @@ a {
 @media (prefers-reduced-motion: reduce) {
   .preloader-mesh {
     animation: none;
+  }
+  .project-scroll-content {
+    --project-card-expansion: 0px;
   }
   .project-card {
     transform: none;

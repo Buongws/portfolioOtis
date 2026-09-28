@@ -7,21 +7,6 @@ import { useProject } from "@/context/project-context";
 import { projects } from "@/data/portfolio";
 import { RevealHeading } from "@/components/motion/reveal-heading";
 
-const PROJECT_INITIAL_SHIFT_MAX = 200;
-const PROJECT_INITIAL_SHIFT_RATIO = 0.2;
-const PROJECT_TABLET_MAX_WIDTH = 1199;
-const PROJECT_TABLET_SHIFT_MAX = 120;
-const PROJECT_TABLET_SHIFT_RATIO = 0.1;
-
-function getProjectInitialShift(viewportWidth: number) {
-  const isTablet = viewportWidth <= PROJECT_TABLET_MAX_WIDTH;
-  return Math.min(
-    isTablet ? PROJECT_TABLET_SHIFT_MAX : PROJECT_INITIAL_SHIFT_MAX,
-    viewportWidth *
-      (isTablet ? PROJECT_TABLET_SHIFT_RATIO : PROJECT_INITIAL_SHIFT_RATIO),
-  );
-}
-
 export function ProjectGallery() {
   const { activeIndex, selectProject } = useProject();
   const viewport = useRef<HTMLDivElement>(null);
@@ -41,22 +26,20 @@ export function ProjectGallery() {
     let frame = 0;
     let offsets: number[] = [];
     let horizontal = false;
+    let measuredWidth = 0;
     let step = 1;
     let displayedIndex = initialIndex.current;
     const measure = () => {
-      const initialLeftBias = getProjectInitialShift(gallery.clientWidth);
-      offsets = cards.map(
-        (card) =>
-          card.offsetLeft +
-          card.offsetWidth / 2 -
-          gallery.clientWidth / 2 +
-          initialLeftBias,
-      );
+      measuredWidth = gallery.clientWidth;
+      // Track padding already aligns the enlarged card with the page gutter.
+      offsets = cards.map((card) => card.offsetLeft - first.offsetLeft);
       horizontal = gallery.scrollWidth > gallery.clientWidth;
       step = cards[1] ? cards[1].offsetLeft - first.offsetLeft : 1;
     };
     const update = () => {
       frame = 0;
+      // ResizeObserver will re-anchor before scroll events use the new geometry.
+      if (gallery.clientWidth !== measuredWidth) return;
       if (pendingLeft.current !== null) {
         gallery.scrollLeft = pendingLeft.current;
         pendingLeft.current = null;
@@ -84,7 +67,8 @@ export function ProjectGallery() {
       if (!frame) frame = requestAnimationFrame(update);
     };
     const settle = () => {
-      if (drag.current || !horizontal) return;
+      if (drag.current || !horizontal || gallery.clientWidth !== measuredWidth)
+        return;
       if (pendingLeft.current !== null) {
         gallery.scrollLeft = pendingLeft.current;
         pendingLeft.current = null;
@@ -165,10 +149,8 @@ export function ProjectGallery() {
     pendingLeft.current = null;
     viewport.current?.scrollTo({
       left:
-        item.offsetLeft +
-        item.offsetWidth / 2 -
-        gallery.clientWidth / 2 +
-        getProjectInitialShift(gallery.clientWidth),
+        item.offsetLeft -
+        (track.current!.children[0] as HTMLElement).offsetLeft,
       behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
         ? "instant"
         : "smooth",
