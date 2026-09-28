@@ -99,6 +99,7 @@ a {
   min-height: 1.075em;
   color: white;
   font-weight: 600;
+  white-space: nowrap;
 }
 .hero-title [data-typewriter]::after {
   content: "";
@@ -1178,6 +1179,7 @@ a {
   .hero-title .hero-word-mobile {
     display: block;
     margin-top: 4px;
+    font-size: min(1em, calc((100vw - 32px) / 6));
   }
   .hero-tagline {
     margin-top: 16px;

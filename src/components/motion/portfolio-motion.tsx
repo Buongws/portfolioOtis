@@ -64,46 +64,43 @@ export function PortfolioMotion() {
                 ...words.slice(initialIndex + 1),
                 ...words.slice(0, initialIndex + 1),
               ];
-              const state = { value: initialWord.length };
               element.textContent = initialWord;
 
-              const timeline = gsap.timeline({ repeat: -1 });
-              timeline.to(state, {
-                value: 0,
-                duration: initialWord.length * 0.06,
-                delay: 1,
-                ease: "none",
-                roundProps: "value",
-                onUpdate: () => {
-                  element.textContent = initialWord.slice(0, state.value);
-                },
-              });
-
-              nextWords.forEach((word, index) => {
-                timeline.to({}, { duration: 0.2 }).to(state, {
-                  value: word.length,
-                  duration: word.length * 0.11,
-                  ease: "none",
-                  roundProps: "value",
-                  onUpdate: () => {
-                    element.textContent = word.slice(0, state.value);
-                  },
-                });
-
-                timeline.to({}, { duration: 1.1 });
-
-                // Keep the last word visible so the next repeat can delete it smoothly.
-                if (index < nextWords.length - 1) {
-                  timeline.to(state, {
-                    value: 0,
-                    duration: word.length * 0.06,
-                    ease: "none",
-                    roundProps: "value",
-                    onUpdate: () => {
-                      element.textContent = word.slice(0, state.value);
+              // Explicit character steps avoid shared tween state snapping on repeat.
+              const timeline = gsap.timeline({ repeat: -1, delay: 1.1 });
+              let position = 0;
+              const deleteWord = (word: string) => {
+                for (let length = word.length - 1; length >= 0; length--) {
+                  position += 0.06;
+                  timeline.call(
+                    () => {
+                      element.textContent = word.slice(0, length);
                     },
-                  });
+                    [],
+                    position,
+                  );
                 }
+              };
+
+              deleteWord(initialWord);
+              nextWords.forEach((word, index) => {
+                position += 0.2;
+                for (let length = 1; length <= word.length; length++) {
+                  position += 0.11;
+                  timeline.call(
+                    () => {
+                      element.textContent = word.slice(0, length);
+                    },
+                    [],
+                    position,
+                  );
+                }
+
+                timeline.to({}, { duration: 1.1 }, position);
+                position += 1.1;
+
+                // End on the initial word; the next cycle starts by deleting it.
+                if (index < nextWords.length - 1) deleteWord(word);
               });
             });
         });
